@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#define UnTempo 5
 
 
 typedef struct voo{
@@ -17,7 +18,24 @@ typedef struct voo{
   struct voo *prox;
 } Voo;
 
+typedef struct evento
+{
+  char codigo[7];
+  char status;
+  float hora;
+  int pista;
+} Evento;
+
 //#include "./funcoes/funcoes.h"
+int pegaHoraLocal();
+void geraVoos(int *qtdVoosTotal,int *qtdVoosA,int *qtdVoosD);
+
+int main(){
+  int qtdVoosTotal,qtdVoosA,qtdVoosD;
+  geraVoos(&qtdVoosTotal,&qtdVoosA,&qtdVoosD);
+
+  return 0;
+}
 
 void geraVoos(int *qtdVoosTotal,int *qtdVoosA,int *qtdVoosD){
   srand(time(NULL));
@@ -29,10 +47,16 @@ void geraVoos(int *qtdVoosTotal,int *qtdVoosA,int *qtdVoosD){
     *qtdVoosA = 10;
   *qtdVoosD = *qtdVoosTotal - *qtdVoosA;
   printf("Total = %d, Aterrissagem = %d, Decolagem = %d\n",*qtdVoosTotal,*qtdVoosA,*qtdVoosD);
+  pegaHoraLocal();
 }
-int main(){
-  int qtdVoosTotal,qtdVoosA,qtdVoosD;
-  geraVoos(&qtdVoosTotal,&qtdVoosA,&qtdVoosD);
-  
-  return 0;
+
+int pegaHoraLocal()
+{
+  time_t rawtime;
+  struct tm * timeinfo;
+
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+  printf ( "Data atual do sistema é: %s", asctime (timeinfo) );
+
 }
