@@ -47,7 +47,7 @@ int main(){
   Fila fila;
   Voo *aux;
   Pista pistas[3];
-  int i,hora = 5,min = 0,minInicio,horaInicio;
+  int i,hora = 5,min = 0,minInicio,horaInicio,cont = 0;
 
   char codigos[64][7] = {"VG3001","JJ4404", "LN7001", "TG1501", "GL7602", "TT1010", "AZ1009",
                          "AZ1008","AZ1010", "TG1506", "VG3002", "JJ4402", "GL7603", "RL7880",
@@ -82,66 +82,48 @@ int main(){
   printf("\n\nNVoos: %d\n",nVoos);
   printf("Naproximações: %d \n",nAproximacoes);
   printf("NDecolagens: %d\n",nDecolagens);
-puts("---------------------------------------------------------------------------------");
-puts("Listagem de eventos:");
-while(fila.primeiro != NULL){
+  puts("---------------------------------------------------------------------------------");
+  puts("Listagem de eventos:");
   rolaEvento(&fila,pistas);
-  for(i = 0; i < 3; i++){
-    if(pistas[i].tempo == 0){
-      printf("Código do voo: %s \n",pistas[i].ocupado->identificacao);
-      printf("Status: ");
-      if(pistas[i].ocupado->tipo == 'D'){
-        printf("aeronave decolou\n");
-        horaInicio = hora;
-        minInicio = min - 2*UnTempo;
-        if(minInicio < 0){
-          minInicio = minInicio + 60;
-          horaInicio = horaInicio - 1;
+  while(fila.primeiro != NULL && pistas[0].tempo != 0 && pistas[1].tempo != 0 && pistas[2].tempo != 0){
+    for(i = 0; i < 3; i++){
+      if(pistas[i].tempo == 0){
+        printf("Código do voo: %s \n",pistas[i].ocupado->identificacao);
+        printf("Status: ");
+        if(pistas[i].ocupado->tipo == 'D'){
+          printf("aeronave decolou\n");
+          horaInicio = hora;
+          minInicio = min - 2*UnTempo;
+          if(minInicio < 0){
+            minInicio = minInicio + 60;
+            horaInicio = horaInicio - 1;
+          }
+          if(horaInicio < 0)
+            horaInicio = horaInicio + 24;
         }
-        if(horaInicio < 0)
-          horaInicio = horaInicio + 24;
-      }
-      else{
-        printf("aeronave pousou\n");
-        horaInicio = hora;
-        minInicio = min - 3*UnTempo;
-        if(minInicio < 0){
-          minInicio = minInicio + 60;
-          horaInicio = horaInicio - 1;
+        else{
+          printf("aeronave pousou\n");
+          horaInicio = hora;
+          minInicio = min - 3*UnTempo;
+          if(minInicio < 0){
+            minInicio = minInicio + 60;
+            horaInicio = horaInicio - 1;
+          }
+          if(horaInicio < 0)
+            horaInicio = horaInicio + 24;
         }
-        if(horaInicio < 0)
-          horaInicio = horaInicio + 24;
+        printf("Horário do início do procedimento: %dh",horaInicio);
+        if(minInicio < 10)
+          printf("0%d\n",minInicio);
+        else
+          printf("%d\n",minInicio);
+        printf("Número da pista: %d\n\n",pistas[i].numero);
+        free(pistas[i].ocupado);
       }
-      printf("Horário do início do procedimento: %dh",horaInicio);
-      if(minInicio < 10)
-        printf("0%d\n",minInicio);
-      else
-        printf("%d\n",minInicio);
-      printf("Número da pista: %d\n",pistas[i].numero);
-      //free(pistas[i].ocupado);
+      printf("Tempo da pista %d: %d min\n",pistas[i].numero,pistas[i].tempo);
+      pistas[i].tempo = pistas[i].tempo - 1*UnTempo;
     }
-    printf("Tempo da pista %d: %d min\n",pistas[i].numero,pistas[i].tempo);
-    pistas[i].tempo = pistas[i].tempo - UnTempo;
-  }
-  printf("\n\npassou o tempo\n\n");
-}
-//for(aux = fila.primeiro;aux != NULL;aux = aux->prox){
-/*aux = fila.primeiro;
-for(i = 0; i < nVoos;i++){
-    printf("Código do voo: %s \n",aux->identificacao);
-    printf("Status: ");
-    if(aux->tipo == 'D')
-      printf("aeronave decolou\n");
-    else{
-      printf("aeronave pousou\n");
-      printf("Nivel de combustivel: %d \n",aux->combA);
-    }
-    printf("Horário do início do procedimento: %dh",hora);
-    if(min < 10)
-      printf("0%d\n",min);
-    else
-      printf("%d\n",min);
-    aux = aux->prox;
+    printf("\n\npassou o tempo OLHA O CONTADOR AQUI ==== %d\n\n",cont);
     min = min + UnTempo;
     if(min >= 60){
       hora++;
@@ -149,8 +131,35 @@ for(i = 0; i < nVoos;i++){
     }
     if(hora >= 24)
       hora = hora - 24;
-  printf("Número da pista: %d",pistas[i].numero);
-}*/
+    cont++;
+    rolaEvento(&fila,pistas);
+  }
+  //for(aux = fila.primeiro;aux != NULL;aux = aux->prox){
+  /*aux = fila.primeiro;
+  for(i = 0; i < nVoos;i++){
+      printf("Código do voo: %s \n",aux->identificacao);
+      printf("Status: ");
+      if(aux->tipo == 'D')
+        printf("aeronave decolou\n");
+      else{
+        printf("aeronave pousou\n");
+        printf("Nivel de combustivel: %d \n",aux->combA);
+      }
+      printf("Horário do início do procedimento: %dh",hora);
+      if(min < 10)
+        printf("0%d\n",min);
+      else
+        printf("%d\n",min);
+      aux = aux->prox;
+      min = min + UnTempo;
+      if(min >= 60){
+        hora++;
+        min = min - 60;
+      }
+      if(hora >= 24)
+        hora = hora - 24;
+    printf("Número da pista: %d\n\n\n",pistas[i].numero);
+  }*/
   return 0;
 }
 
@@ -182,7 +191,7 @@ void carregaFila(Fila *fila,int nVoos,int nAproximacoes,int nDecolagens,char cod
   int i;
   for(i = 0; i < nAproximacoes;i++){
     strcpy(voo[i].identificacao,codigos[i]);
-    voo[i].tipo = 'P';
+    voo[i].tipo = 'A';
     voo[i].combA = rand() % 12;
     voo[i].prox = NULL;
   }
@@ -229,53 +238,87 @@ void insereNaFila(Fila *fila,Voo *voo){
 
 void rolaEvento(Fila *fila, Pista pistas[3]){
   Voo *aux,*ant = NULL;
-  for(aux = fila->primeiro;aux != NULL;aux = aux->prox){
+  int inseriuNoInicio = 0;
+  for(aux = fila->primeiro; aux != NULL; aux = aux->prox){
     if(aux->tipo == 'D'){
       if(pistas[0].tempo == 0){
         pistas[0].ocupado = aux;
         pistas[0].tempo = 2*UnTempo;
         //Se o anterior for nulo, significa q o aux e o primeiro elemento
-        if(ant == NULL)
+        if(ant == NULL){
+          printf("Primeiro da fila 1 - decolagem aviao %s\n", pistas[0].ocupado->identificacao);
           fila->primeiro = aux->prox;
-        else
+          inseriuNoInicio = 1;
+        }
+        else{
+          printf("outro cara 1 -decolagem aviao %s\n", pistas[0].ocupado->identificacao);
           ant->prox = aux->prox;
+          inseriuNoInicio = 0;
+        }
       }
       else if(pistas[1].tempo == 0){
         pistas[1].ocupado = aux;
         pistas[1].tempo = 2*UnTempo;
-        if(ant == NULL)
+        if(ant == NULL){
+          printf("Primeiro da fila 2 -decolagem aviao %s\n", pistas[1].ocupado->identificacao);
           fila->primeiro = aux->prox;
-        else
+          inseriuNoInicio = 1;
+        }
+        else{
+          printf("outro cara 2 -decolagem aviao %s\n", pistas[1].ocupado->identificacao);
           ant->prox = aux->prox;
+          inseriuNoInicio = 0;
+        }
       }
       else if(pistas[2].tempo == 0){
         pistas[2].ocupado = aux;
         pistas[2].tempo = 2*UnTempo;
-        if(ant == NULL)
+        if(ant == NULL){
+          printf("Primeiro da fila 3 -decolagem aviao %s\n", pistas[2].ocupado->identificacao);
           fila->primeiro = aux->prox;
-        else
+          inseriuNoInicio = 1;
+        }
+        else{
+          printf("outro cara 3 -decolagem aviao %s\n", pistas[2].ocupado->identificacao);
           ant->prox = aux->prox;
+          inseriuNoInicio = 0;
+        }
       }
     }
-    else{
+    else{// Voo tipo A
       if(pistas[0].tempo == 0){
         pistas[0].ocupado = aux;
         pistas[0].tempo = 3*UnTempo;
-        if(ant == NULL)
+        if(ant == NULL){
+          printf("Primeiro da fila 1 aviao %s\n", pistas[0].ocupado->identificacao);
           fila->primeiro = aux->prox;
-        else
+          inseriuNoInicio = 1;
+        }
+        else{
+          printf("outro cara 1 aviao %s\n", pistas[0].ocupado->identificacao);
           ant->prox = aux->prox;
+          inseriuNoInicio = 0;
+        }
       }
       else if(pistas[1].tempo == 0){
         pistas[1].ocupado = aux;
         pistas[1].tempo = 3*UnTempo;
-        if(ant == NULL)
+        if(ant == NULL){
+          printf("Primeiro da fila 2 aviao %s\n", pistas[1].ocupado->identificacao);
           fila->primeiro = aux->prox;
-        else
+          inseriuNoInicio = 1;
+        }
+        else{
+          printf("outro cara 3 aviao %s\n", pistas[1].ocupado->identificacao);
           ant->prox = aux->prox;
+          inseriuNoInicio = 0;
+        }
       }
-      aux->combA = aux->combA - 1;
+      //aux->combA = aux->combA - 1;
     }
-    ant = aux;
+    if(inseriuNoInicio == 1)
+      ant = NULL;
+    else
+      ant = aux;
   }
 }
