@@ -21,14 +21,6 @@ typedef struct fila{
   Voo *primeiro,*ultimo;
 } Fila;
 
-typedef struct evento
-{
-  char codigo[7];
-  char status;
-  float hora;
-  int pista;
-} Evento;
-
 typedef struct pista{
   int numero;
   Voo *ocupado;
@@ -36,7 +28,7 @@ typedef struct pista{
 } Pista;
 
 //#include "./funcoes/funcoes.h"
-int pegaHoraLocal();
+//int pegaHoraLocal()
 void geraVoos(int *nVoos,int *nAproximacoes,int *nDecolagens);
 void carregaFila(Fila *fila,int nVoos,int nAproximacoes,int nDecolagens,char codigos[][7]);
 void embaralhar(Voo *vetor,int nVoos);
@@ -85,7 +77,7 @@ int main(){
   printf("Naproximações: %d \n",nAproximacoes);
   printf("NDecolagens: %d\n",nDecolagens);
   puts("---------------------------------------------------------------------------------");
-  puts("Listagem de eventos:");
+  printf("Listagem de eventos:\n\n");
   rolaEvento(&fila,pistas,&desvio);
   do{
     for(i = 0; i < 3; i++){
@@ -142,8 +134,7 @@ int main(){
     rolaEvento(&fila,pistas,&desvio);
     for(i = 0; i < 3; i++)
       pistas[i].tempo = pistas[i].tempo - 1*UnTempo;
-    //rolaEvento(&fila,pistas,&desvio);
-  }while(fila.primeiro != NULL);
+  }while(fila.primeiro != NULL || (pistas[0].tempo != 0 && pistas[1].tempo != 0 && pistas[2].tempo != 0));
 
   //for(aux = fila.primeiro;aux != NULL;aux = aux->prox){
   /*aux = fila.primeiro;
@@ -183,10 +174,9 @@ void geraVoos(int *nVoos,int *nAproximacoes,int *nDecolagens){
   if (*nAproximacoes < 10)
     *nAproximacoes = 10;
   *nDecolagens = *nVoos - *nAproximacoes;
-  pegaHoraLocal();
 }
 
-int pegaHoraLocal()
+/*int pegaHoraLocal()
 {
   time_t rawtime;
   struct tm * timeinfo;
@@ -194,7 +184,7 @@ int pegaHoraLocal()
   time ( &rawtime );
   timeinfo = localtime ( &rawtime );
   //printf ( "Data atual do sistema é: %s", asctime (timeinfo) );
-}
+}*/
 
 void carregaFila(Fila *fila,int nVoos,int nAproximacoes,int nDecolagens,char codigos[][7]){
   Voo voo[nVoos];
