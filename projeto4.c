@@ -41,13 +41,15 @@ void geraVoos(int *nVoos,int *nAproximacoes,int *nDecolagens);
 void carregaFila(Fila *fila,int nVoos,int nAproximacoes,int nDecolagens,char codigos[][7]);
 void embaralhar(Voo *vetor,int nVoos);
 void insereNaFila(Fila *fila,Voo *voo);
-void rolaEvento(Fila *fila, Pista pistas[3]);
+void rolaEvento(Fila *fila, Pista pistas[3],int *desvio);
+void decresceCombustivel(Fila *fila);
+void verificaEmergencia(Fila *fila,int *desvio);
 
 int main(){
   Fila fila;
   Voo *aux;
   Pista pistas[3];
-  int i,hora = 5,min = 0,minInicio,horaInicio,cont = 0;
+  int i,hora = 5,min = 0,minInicio,horaInicio,cont = 0,desvio = 0;
 
   char codigos[64][7] = {"VG3001","JJ4404", "LN7001", "TG1501", "GL7602", "TT1010", "AZ1009",
                          "AZ1008","AZ1010", "TG1506", "VG3002", "JJ4402", "GL7603", "RL7880",
@@ -84,8 +86,8 @@ int main(){
   printf("NDecolagens: %d\n",nDecolagens);
   puts("---------------------------------------------------------------------------------");
   puts("Listagem de eventos:");
-  rolaEvento(&fila,pistas);
-  while(fila.primeiro != NULL && pistas[0].tempo != 0 && pistas[1].tempo != 0 && pistas[2].tempo != 0){
+  rolaEvento(&fila,pistas,&desvio);
+  do{
     for(i = 0; i < 3; i++){
       if(pistas[i].tempo == 0){
         printf("Código do voo: %s \n",pistas[i].ocupado->identificacao);
@@ -120,10 +122,16 @@ int main(){
         printf("Número da pista: %d\n\n",pistas[i].numero);
         free(pistas[i].ocupado);
       }
-      printf("Tempo da pista %d: %d min\n",pistas[i].numero,pistas[i].tempo);
-      pistas[i].tempo = pistas[i].tempo - 1*UnTempo;
+      //printf("Tempo da pista %d: %d min\n",pistas[i].numero,pistas[i].tempo);
     }
-    printf("\n\npassou o tempo OLHA O CONTADOR AQUI ==== %d\n\n",cont);
+    cont++;
+    if(cont > 9){
+      decresceCombustivel(&fila);
+      cont = 0;
+      //printf("RESETOU O CONTADOR E REDUZIU 1 COMBUSTIVEL\n");
+    }
+    verificaEmergencia(&fila,&desvio);
+    //printf("\n\npassou o tempo CONTADOR = %d\n\n",cont);
     min = min + UnTempo;
     if(min >= 60){
       hora++;
@@ -131,9 +139,12 @@ int main(){
     }
     if(hora >= 24)
       hora = hora - 24;
-    cont++;
-    rolaEvento(&fila,pistas);
-  }
+    rolaEvento(&fila,pistas,&desvio);
+    for(i = 0; i < 3; i++)
+      pistas[i].tempo = pistas[i].tempo - 1*UnTempo;
+    //rolaEvento(&fila,pistas,&desvio);
+  }while(fila.primeiro != NULL);
+
   //for(aux = fila.primeiro;aux != NULL;aux = aux->prox){
   /*aux = fila.primeiro;
   for(i = 0; i < nVoos;i++){
@@ -186,7 +197,6 @@ int pegaHoraLocal()
 }
 
 void carregaFila(Fila *fila,int nVoos,int nAproximacoes,int nDecolagens,char codigos[][7]){
-  //Voo *voos = (*Voo)malloc(nVoos*sizeof(Voo));
   Voo voo[nVoos];
   int i;
   for(i = 0; i < nAproximacoes;i++){
@@ -236,7 +246,7 @@ void insereNaFila(Fila *fila,Voo *voo){
   }
 }
 
-void rolaEvento(Fila *fila, Pista pistas[3]){
+void rolaEvento(Fila *fila, Pista pistas[3], int *desvio){
   Voo *aux,*ant = NULL;
   int inseriuNoInicio = 0;
   for(aux = fila->primeiro; aux != NULL; aux = aux->prox){
@@ -246,12 +256,12 @@ void rolaEvento(Fila *fila, Pista pistas[3]){
         pistas[0].tempo = 2*UnTempo;
         //Se o anterior for nulo, significa q o aux e o primeiro elemento
         if(ant == NULL){
-          printf("Primeiro da fila 1 - decolagem aviao %s\n", pistas[0].ocupado->identificacao);
+          //printf("Primeiro da fila 1 - decolagem aviao %s\n", pistas[0].ocupado->identificacao);
           fila->primeiro = aux->prox;
           inseriuNoInicio = 1;
         }
         else{
-          printf("outro cara 1 -decolagem aviao %s\n", pistas[0].ocupado->identificacao);
+          //printf("outro cara 1 - decolagem aviao %s\n", pistas[0].ocupado->identificacao);
           ant->prox = aux->prox;
           inseriuNoInicio = 0;
         }
@@ -260,12 +270,12 @@ void rolaEvento(Fila *fila, Pista pistas[3]){
         pistas[1].ocupado = aux;
         pistas[1].tempo = 2*UnTempo;
         if(ant == NULL){
-          printf("Primeiro da fila 2 -decolagem aviao %s\n", pistas[1].ocupado->identificacao);
+          //printf("Primeiro da fila 2 - decolagem aviao %s\n", pistas[1].ocupado->identificacao);
           fila->primeiro = aux->prox;
           inseriuNoInicio = 1;
         }
         else{
-          printf("outro cara 2 -decolagem aviao %s\n", pistas[1].ocupado->identificacao);
+          //printf("outro cara 2 - decolagem aviao %s\n", pistas[1].ocupado->identificacao);
           ant->prox = aux->prox;
           inseriuNoInicio = 0;
         }
@@ -274,12 +284,12 @@ void rolaEvento(Fila *fila, Pista pistas[3]){
         pistas[2].ocupado = aux;
         pistas[2].tempo = 2*UnTempo;
         if(ant == NULL){
-          printf("Primeiro da fila 3 -decolagem aviao %s\n", pistas[2].ocupado->identificacao);
+          //printf("Primeiro da fila 3 - decolagem aviao %s\n", pistas[2].ocupado->identificacao);
           fila->primeiro = aux->prox;
           inseriuNoInicio = 1;
         }
         else{
-          printf("outro cara 3 -decolagem aviao %s\n", pistas[2].ocupado->identificacao);
+          //printf("outro cara 3 - decolagem aviao %s\n", pistas[2].ocupado->identificacao);
           ant->prox = aux->prox;
           inseriuNoInicio = 0;
         }
@@ -290,12 +300,12 @@ void rolaEvento(Fila *fila, Pista pistas[3]){
         pistas[0].ocupado = aux;
         pistas[0].tempo = 3*UnTempo;
         if(ant == NULL){
-          printf("Primeiro da fila 1 aviao %s\n", pistas[0].ocupado->identificacao);
+          //printf("Primeiro da fila 1 - aterrissagem aviao %s\n", pistas[0].ocupado->identificacao);
           fila->primeiro = aux->prox;
           inseriuNoInicio = 1;
         }
         else{
-          printf("outro cara 1 aviao %s\n", pistas[0].ocupado->identificacao);
+          //printf("outro cara 1 - aterrissagem aviao %s\n", pistas[0].ocupado->identificacao);
           ant->prox = aux->prox;
           inseriuNoInicio = 0;
         }
@@ -304,21 +314,64 @@ void rolaEvento(Fila *fila, Pista pistas[3]){
         pistas[1].ocupado = aux;
         pistas[1].tempo = 3*UnTempo;
         if(ant == NULL){
-          printf("Primeiro da fila 2 aviao %s\n", pistas[1].ocupado->identificacao);
+          //printf("Primeiro da fila 2 - aterrissagem aviao %s\n", pistas[1].ocupado->identificacao);
           fila->primeiro = aux->prox;
           inseriuNoInicio = 1;
         }
         else{
-          printf("outro cara 3 aviao %s\n", pistas[1].ocupado->identificacao);
+          //printf("outro cara 2 - aterrissagem aviao %s\n", pistas[1].ocupado->identificacao);
           ant->prox = aux->prox;
           inseriuNoInicio = 0;
         }
       }
-      //aux->combA = aux->combA - 1;
+      else if(*desvio == 1){
+        if(ant == NULL){// se for o primeiro
+          if(pistas[2].tempo == 0){
+            pistas[2].ocupado = aux;
+            pistas[2].tempo = 3*UnTempo;
+            //printf("Primeiro da fila 3 - aterrissagem aviao EMERGENCIAL %s\n", pistas[1].ocupado->identificacao);
+            fila->primeiro = aux->prox;
+            inseriuNoInicio = 1;
+          }
+          else{
+            printf("ALERTA CRÍTICO, AERONAVE %s IRÁ CAIR\n",aux->identificacao);
+            fila->primeiro = aux->prox;
+            inseriuNoInicio = 1;
+            free(aux);
+          }
+        }
+      }
     }
     if(inseriuNoInicio == 1)
       ant = NULL;
     else
       ant = aux;
+  }
+}
+void decresceCombustivel(Fila *fila){
+  Voo *aux;
+  for(aux = fila->primeiro; aux != NULL; aux = aux->prox){
+    if(aux->tipo == 'P')
+      aux->combA = aux->combA - 1;
+  }
+}
+
+void verificaEmergencia(Fila *fila,int *desvio){
+  Voo *aux,*ant = NULL;
+  int nEmergencias = 0;
+  for(aux = fila->primeiro; aux != NULL; aux = aux->prox){
+    if(aux->combA == '0'){
+      if(aux != fila->primeiro){ // se ele n e o primeiro, ele se torna o primeiro
+        ant->prox = aux->prox;
+        aux->prox = fila->primeiro;
+        fila->primeiro = aux;
+      }
+      nEmergencias++;
+    }
+    ant = aux;
+  }
+  if(nEmergencias >= 3){
+    printf("ALERTA GERAL DE DESVIO DE AERONAVE\n");
+    *desvio = 1;
   }
 }
